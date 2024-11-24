@@ -1,22 +1,11 @@
 import { MKTimelineUser } from "../types/timeline";
 import { MKUserI } from "../types/useri";
 import { isURL } from "../util/isURL";
+import { MKEmojisToMasto } from "./emoji";
 
 export const MKUserToMasto = (user: MKUserI | MKTimelineUser, instance: string) => {
-    let emojis = []
+    let emojis = MKEmojisToMasto(user.emojis)
 	let fields = []
-
-	for (let emoji of Object.keys(user.emojis)) {
-		// TODO: fix types
-		// @ts-ignore
-		let url = user.emojis[emoji]
-		emojis.push({
-			shortcode: emoji,
-			static_url: url,
-			url: url,
-			visible_in_picker: true
-		})
-	}
 
 	if ("fields" in user) {
         for (let field of user.fields) {
