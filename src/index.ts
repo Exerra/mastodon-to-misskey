@@ -112,7 +112,7 @@ app.all("*", async ({ request, body, set }) => {
 })
 
 app.get("/api/v1/preferences", async ({ request, redirect }) => {
-	let id = "dcxF5rDO9R5dfxpd"
+	let id = "dcxF5rDO9R5dfxpd" // TODO: dynamically get the logged in users ID with the /api/i endpoint
 
 	const req = await fetch(`https://${instance}/api/v1/preferences`, {
 		method: "POST",
