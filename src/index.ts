@@ -11,8 +11,8 @@ import { MKUser } from "./types/user";
 import { MKUserI } from "./types/useri";
 import { isURL } from "./util/isURL";
 import { MKTimeline } from "./types/timeline";
-import { MKUserToMastoUser } from "./util/user";
-import { MKNoteToMastoNote } from "./util/note";
+import { MKUserToMasto } from "./converters/user";
+import { MKNoteToMasto } from "./converters/note";
 
 const instance = "daedric.world" // TODO: add to env
 
@@ -125,7 +125,7 @@ app.get("/api/v1/accounts/verify_credentials", async ({ request, redirect }) => 
 	})
 	const res = await req.json() as MKUserI
 
-	return MKUserToMastoUser(res, instance)
+	return MKUserToMasto(res, instance)
 })
 
 app.get("/api/v1/timelines/home", async ({ request, query }) => {
@@ -153,7 +153,7 @@ app.get("/api/v1/timelines/home", async ({ request, query }) => {
 	let items: any[] = []
 
 	for (let item of res) {
-		items.push(MKNoteToMastoNote(item, instance))
+		items.push(MKNoteToMasto(item, instance))
 	}
 
 	return items
