@@ -1,3 +1,10 @@
+/*
+	DEFINITION GUIDE
+
+	MK = Misskey
+	Masto = Mastodon
+*/
+
 import { Elysia, redirect } from "elysia";
 import { cors } from "@elysiajs/cors"
 import { MKUser } from "./types/user";
