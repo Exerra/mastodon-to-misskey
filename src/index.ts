@@ -37,8 +37,6 @@ app.all("*", async ({ request, body, set }) => {
 	url.hostname = instance
 	url.port = ""
 
-	// console.log(url)
-
 	let init: RequestInit = {
 		method: request.method,
 		headers: {
@@ -60,15 +58,6 @@ app.all("*", async ({ request, body, set }) => {
 	// init.headers["x-forwarded-for"] = ""
 
 	const req = await fetch(url.toString(), init)
-	// console.log(request.url)
-	// console.log(body)
-
-	// console.log(request.headers)
-
-	// set.headers = req.headers
-
-	// console.log(body)
-	// console.log(req)
 
 	for (let key of Object.keys(req.headers)) {
 		// TODO: fix
@@ -82,13 +71,7 @@ app.all("*", async ({ request, body, set }) => {
 
 	set.status = req.status
 
-	// set.status = 200
-
-	// console.log(req)
-
 	let bodya: any = ""
-
-	// console.log(req.headers.get("Content-Type"))
 
 	switch (req.headers.get("Content-Type")) {
 		case "application/json":
@@ -96,16 +79,11 @@ app.all("*", async ({ request, body, set }) => {
 			break;
 		case "application/json; charset=utf-8": // ? trim charset from header to unify
 			bodya = await req.json()
-			// console.log(JSON.stringify(bodya))
 			break;
 		default:
 			bodya = await req.blob()
 			break;
 	}
-
-	// console.log(bodya, url, body)
-
-	// console.log(url, bodya)
 
 	return bodya
 })
@@ -148,68 +126,6 @@ app.get("/api/v1/accounts/verify_credentials", async ({ request, redirect }) => 
 	const res = await req.json() as MKUserI
 
 	return MKUserToMastoUser(res, instance)
-
-	// let emojis = []
-	// let fields = []
-
-	// for (let emoji of Object.keys(res.emojis)) {
-	// 	// TODO: fix types
-	// 	// @ts-ignore
-	// 	let url = res.emojis[emoji]
-	// 	emojis.push({
-	// 		shortcode: emoji,
-	// 		static_url: url,
-	// 		url: url,
-	// 		visible_in_picker: true
-	// 	})
-	// }
-
-	// for (let field of res.fields) {
-	// 	let { name, value } = field
-
-	// 	let temp = {
-	// 		name: name,
-	// 		value: "",
-	// 		verified_At: null // TODO: verify links
-	// 	}
-
-	// 	if (isURL(value)) temp.value = `<a rel="nofollow noopener noreferrer" target="_blank" href="${value.replace("http://", "").replace("https://", "")}"></a>` // TODO: use URL() to trim protocol and add query trimming
-	// 	else temp.value = `<span>${value}</span>`
-
-	// 	fields.push(temp)
-	// }
-
-	// return {
-	// 	id: res.id,
-	// 	username: res.username,
-	// 	acct: res.username,
-	// 	fqn: `${res.username}@${instance}`,
-	// 	display_name: res.name,
-	// 	locked: res.isLocked,
-	// 	created_at: res.createdAt,
-	// 	followers_count: res.followersCount,
-	// 	following_count: res.followingCount,
-	// 	statuses_count: res.notesCount,
-	// 	note: res.description,
-	// 	url: `https://${instance}/@${res.username}`,
-	// 	uri: `https://${instance}/users/${res.id}`,
-	// 	avatar: res.avatarUrl,
-	// 	avatar_static: res.avatarUrl,
-	// 	header: res.bannerUrl,
-	// 	header_static: res.bannerUrl,
-	// 	emojis: emojis,
-	// 	moved: res.movedTo,
-	// 	fields: fields,
-	// 	bot: res.isBot,
-	// 	discoverable: res.isExplorable,
-	// 	source: {
-	// 		note: res.description,
-	// 		fields: fields,
-	// 		privacy: "",
-	// 		sensitive: res.autoSensitive,
-	// 		langauge: "english"
-	// 	}
-	// }
 })
 
 app.get("/api/v1/timelines/home", async ({ request, query }) => {
@@ -234,64 +150,10 @@ app.get("/api/v1/timelines/home", async ({ request, query }) => {
 
 	const res = await req.json() as MKTimeline
 
-	console.log("Bearer " + process.env.DEV_BEARER)
-	console.log(query)
-
 	let items: any[] = []
 
-	// console.log(res)
-
 	for (let item of res) {
-		// console.log(item.text)
 		items.push(MKNoteToMastoNote(item, instance))
-
-		continue
-		let temp: any = {
-			id: item.id,
-			uri: item.uri,
-			url: item.url,
-			// @ts-ignore
-			account: MKUserToMastoUser(item.user, instance), //{}, // ! add
-			in_reply_to_id: null,
-			in_reply_to_account_id: null,
-			reblog: null, // ! add,
-			content: item.text, // TODO: convert MD to html
-			content_type: "text/x.misskeymarkdown",
-			text: item.text,
-			created_at: item.createdAt,
-			emojis: [], // ! add
-			replies_count: item.repliesCount,
-			reblogs_count: item.renoteCount,
-			favourites_count: item.reactionCount,
-			reblogged: false, // ! add
-			favourited: false, // ! add
-			muted: false, // ! add
-			sensitive: (item.cw != null),
-			spoiler_text: item.cw,
-			visibility: item.visibility,
-			media_attachments: [], // ! add
-			mentions: [], // ! add
-			tags: [], // ! add
-			card: null,
-			poll: null,
-			application: null,
-			language: null,
-			pinned: false,
-			reactions: [],
-			emoji_reactions: [],
-			bookmarked: false,
-			quote: null,
-			edited_at: item.updatedAt
-		}
-
-		if (item.replyId != null) {
-			temp.in_reply_to_id = item.replyId
-			temp.in_reply_to_account_id = item.reply!.userId
-		}
-
-		item.user
-
-		items.push(temp)
 	}
 
 	return items
