@@ -2,12 +2,13 @@ import { MKTimelineItem, MKTimelineRenote } from "../types/timeline";
 import { MKUserToMasto } from "./user";
 
 export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance: string) => {
+    console.log(note.uri)
     let temp: any = {
         id: note.id,
         uri: note.uri,
         url: note.url,
-        // @ts-ignore
-        account: MKUserToMasto(note.user, instance),
+        // @ts-ignore                                           slight hack so it doesnt complain that undefined isnt a url (?????)
+        account: MKUserToMasto(note.user, (new URL(note.url || "https://daedric.world")).hostname),
         in_reply_to_id: null,
         in_reply_to_account_id: null,
         reblog: note.renote == null ? null : MKNoteToMasto(note.renote, instance), // ! add
@@ -24,7 +25,7 @@ export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance:
         muted: false, // ! add
         sensitive: (note.cw != null),
         spoiler_text: note.cw || "",
-        visibility: note.visibility || "public",
+        visibility: "public",//note.visibility || "public",
         media_attachments: [],
         mentions: [], // ! add
         tags: [],
@@ -38,6 +39,10 @@ export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance:
         bookmarked: false,
         quote: null,
         edited_at: (note as MKTimelineItem).updatedAt || null
+    }
+
+    if (note.user.username == "exerra") {
+        console.log(note)
     }
 
     if (note.replyId != null) {
