@@ -491,8 +491,19 @@ app.get("/api/v2/instance", ({ request }) => {
 
 // ! -------------------------------------------------------------------------------
 
-app.listen(3000);
+let port = 5173
 
-console.log(
-	`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
-);
+const start = () => {
+	try {
+		app.listen(port);
+
+		console.log(
+			`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+		);
+	} catch (e) {
+		port++
+		start()
+	}
+}
+
+start()
