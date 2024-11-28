@@ -13,8 +13,11 @@ import { isURL } from "./util/isURL";
 import { MKTimeline } from "./types/timeline";
 import { MKUserToMasto } from "./converters/user";
 import { MKNoteToMasto } from "./converters/note";
+import { wellKnown } from "./routes/well-known";
 
-const instance = "daedric.world" // TODO: add to env
+// const instance = "daedric.world" // TODO: add to env
+
+const instance = process.env.INSTANCE as string
 
 const app = new Elysia()
 
@@ -28,6 +31,7 @@ let scopes = [
 ]
 
 app.use(cors())
+app.use(wellKnown)
 
 // app.get("/", () => "Hello Elysia")
 
@@ -129,7 +133,6 @@ app.get("/api/v1/accounts/verify_credentials", async ({ request, redirect }) => 
 })
 
 app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params }) => {
-	console.log(query)
 	const { limit, since_id, until_id, max_id } = query
 
 	let body: any = {
@@ -172,8 +175,6 @@ app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params }) =
 		items.push(MKNoteToMasto(item, instance))
 	}
 
-	// console.log(items)
-
 	let tempQuery = query
 
 	delete tempQuery.max_id
@@ -181,48 +182,14 @@ app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params }) =
 
 	let searchParams = new URLSearchParams(tempQuery as any)
 
-	// console.log(`https://${new URL(request.url).hostname}/api/v1/timelines/${params.timeline}?${searchParams}`)
-
 	let base = `https://${new URL(request.url).hostname}/api/v1/timelines/${params.timeline}?${searchParams}`
 
-	// <https://mastodon.social/api/v1/timelines/home?limit=20&max_id=113538707619723483>; rel="next", <https://mastodon.social/api/v1/timelines/home?limit=20&min_id=113559156237430301>; rel="prev"
-
 	set.headers.link = `<${base}&max_id=${items[items.length - 1].id}>; rel="next", <${base}&min_id=${items[0].id}>; rel="prev"`
-
-	// console.log(`<${base}&max_id=${items[items.length - 1].id}>; rel="next", <${base}&min_id=${items[0].id}>; rel="prev"`)
-
 	set.headers["access-control-expose-headers"] += ", link"
 
 	return items
 })
 
-
-// Redirects to the instance OAuth screen with the same params. Very important. Does not work otherwise.
-app.get("/oauth/authorize", async ({ request, redirect }) => {
-	let url = new URL(request.url)
-
-	url.hostname = instance
-
-	return redirect(url.toString())
-})
-
-app.get("/.well-known/oauth-authorization-server", async () => {
-	const req = await fetch(`https://${instance}/.well-known/oauth-authorization-server`)
-	const res = await req.json()
-
-	return res
-})
-
-app.get("/.well-known/host-meta", async ({ request }) => {
-	const hostname = new URL(request.url).hostname
-
-	const req = await fetch(`https://${instance}/.well-known/host-meta`)
-	let res = await req.text()
-
-	res = res.replaceAll(instance, hostname) // Otherwise well coded apps use the domain provided by the above endpoint rather than what was inputted by the user (example: Phanpy)
-
-	return res
-})
 
 // TODO: Uses the Sharkey MK to Masto impl., need to figure out MK native
 app.post("/api/v1/apps", async ({ body }) => {
