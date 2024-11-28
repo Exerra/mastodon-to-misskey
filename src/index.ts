@@ -54,7 +54,7 @@ app.all("*", async ({ request, body, set }) => {
 	if (request.headers.get("Authorization")) {
 		// TODO: fix
 		// @ts-ignore
-		init.headers["Authorization"] = "Bearer " + process.env.DEV_BEARER //request.headers.get("Authorization")!
+		init.headers["Authorization"] = "Bearer " + request.headers.get("Authorization")!
 	}
 
 	console.log(url.toString(), "url to string")
