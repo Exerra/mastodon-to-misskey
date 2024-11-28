@@ -15,14 +15,21 @@ import { MKUserToMasto } from "./converters/user";
 import { MKNoteToMasto } from "./converters/note";
 import { wellKnown } from "./routes/well-known";
 import { auth } from "./routes/auth";
+import { notes } from "./routes/note";
 
 const instance = process.env.INSTANCE as string
 
 const app = new Elysia()
+	.onError(({ error, code }) => {
+		if (code === "NOT_FOUND") return
+
+		console.error(error)
+	})
 
 app.use(cors())
 app.use(wellKnown)
 app.use(auth)
+app.use(notes)
 
 // app.get("/", () => "Hello Elysia")
 
@@ -140,7 +147,10 @@ app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params, hea
 	const { authorization } = headers
 
 	let body: any = {
-		limit: parseInt(limit!) || 10
+		limit: parseInt(limit!) || 10,
+		allowPartial: true,
+		withReplies: true,
+		// withFiles: true
 	}
 
 	if (since_id) body.sinceId = since_id
@@ -154,9 +164,9 @@ app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params, hea
 			if (query.local) mkTimeline = "local-timeline"
 			else mkTimeline = "global-timeline"
 			break;
-		case "home":
-			mkTimeline = "following"
-			break;
+		// case "home":
+		// 	mkTimeline = "following"
+		// 	break;
 		default:
 			mkTimeline = "hybrid-timeline"
 			break;
@@ -188,7 +198,7 @@ app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params, hea
 
 	let base = `https://${new URL(request.url).hostname}/api/v1/timelines/${params.timeline}?${searchParams}`
 
-	set.headers.link = `<${base}&max_id=${items[items.length - 1].id}>; rel="next", <${base}&min_id=${items[0].id}>; rel="prev"`
+	if (items.length != 0) set.headers.link = `<${base}&max_id=${items[items.length - 1].id}>; rel="next", <${base}&min_id=${items[0].id}>; rel="prev"`
 	set.headers["access-control-expose-headers"] += ", link"
 
 	return items

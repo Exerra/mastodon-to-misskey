@@ -1,4 +1,5 @@
 import { MKTimelineItem, MKTimelineRenote } from "../types/timeline";
+import { MKVisibility } from "../types/visibility";
 import { MKUserToMasto } from "./user";
 import { marked } from "marked";
 
@@ -100,6 +101,21 @@ export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance:
                 url: `https://${instance}/tags/${tag}`
             })
         }
+    }
+
+    switch (note.visibility as MKVisibility) {
+        case "public":
+            temp.visibility = "public"
+            break;
+        case "home":
+            temp.visibility = "unlisted"
+            break;
+        case "followers":
+            temp.visibility = "private"
+            break;
+        case "specified":
+            temp.visibility = "direct"
+            break;
     }
 
     // note.user
