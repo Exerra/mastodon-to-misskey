@@ -1,8 +1,24 @@
 import { MKTimelineItem, MKTimelineRenote } from "../types/timeline";
 import { MKUserToMasto } from "./user";
+import { marked } from "marked";
 
 export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance: string) => {
     console.log(note.uri)
+
+    const renderer = new marked.Renderer()
+
+    renderer.text = ({ text }) => {
+        const tagRegex = /#(\w+)/g;
+    
+        // Replace #tag with a link
+        return text.replace(tagRegex, (match, tag) => {
+            const url = `https://${instance}/tags/${tag}`;
+            return `<a href="${url}" class="mention hashtag" target="_blank" rel="tag">#<span>${tag}</span></a>`;
+        });
+    }
+
+    marked.setOptions({ renderer })
+
     let temp: any = {
         id: note.id,
         uri: note.uri,
@@ -12,7 +28,7 @@ export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance:
         in_reply_to_id: null,
         in_reply_to_account_id: null,
         reblog: note.renote == null ? null : MKNoteToMasto(note.renote, instance), // ! add
-        content: note.text, // TODO: convert MD to html
+        content: marked.parse(note.text || ""),
         content_type: "text/x.misskeymarkdown",
         text: note.text,
         created_at: note.createdAt,

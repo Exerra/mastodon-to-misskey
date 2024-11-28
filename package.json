@@ -7,7 +7,8 @@
   },
   "dependencies": {
     "@elysiajs/cors": "^1.1.1",
-    "elysia": "latest"
+    "elysia": "latest",
+    "marked": "^15.0.2"
   },
   "devDependencies": {
     "bun-types": "latest"
