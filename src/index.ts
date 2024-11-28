@@ -5,7 +5,7 @@
 	Masto = Mastodon
 */
 
-import { Elysia, redirect } from "elysia";
+import { Elysia, redirect, t } from "elysia";
 import { cors } from "@elysiajs/cors"
 import { MKUser } from "./types/user";
 import { MKUserI } from "./types/useri";
@@ -26,7 +26,7 @@ app.use(auth)
 
 // app.get("/", () => "Hello Elysia")
 
-app.all("*", async ({ request, body, set }) => {
+app.all("*", async ({ request, body, set, headers }) => {
 	const url = new URL(request.url)
 
 	url.hostname = instance
@@ -45,7 +45,7 @@ app.all("*", async ({ request, body, set }) => {
 	if (request.headers.get("Authorization")) {
 		// TODO: fix
 		// @ts-ignore
-		init.headers["Authorization"] = "Bearer " + request.headers.get("Authorization")!
+		init.headers["Authorization"] =  headers.authorization //"Bearer " + request.headers.get("Authorization")!
 	}
 
 	console.log(url.toString(), "url to string")
@@ -83,13 +83,15 @@ app.all("*", async ({ request, body, set }) => {
 	return bodya
 })
 
-app.get("/api/v1/preferences", async ({ request, redirect }) => {
+app.get("/api/v1/preferences", async ({ request, redirect, headers }) => {
+	const { authorization } = headers
+
 	let id = "dcxF5rDO9R5dfxpd" // TODO: dynamically get the logged in users ID with the /api/i endpoint
 
 	const req = await fetch(`https://${instance}/api/v1/preferences`, {
 		method: "POST",
 		headers: {
-			"Authorization": "Bearer " + process.env.DEV_BEARER,
+			"Authorization": authorization, //"Bearer " + process.env.DEV_BEARER,
 			"Content-Type": "application/json"
 		},
 		body: JSON.stringify({
@@ -105,15 +107,21 @@ app.get("/api/v1/preferences", async ({ request, redirect }) => {
 		"reading:expand:media": "default", 			// ? ^^^^
 		"reading:expand:spoilers": false 			// ? ^^^^
 	}
+}, {
+	headers: t.Object({
+		authorization: t.String()
+	})
 })
 
-app.get("/api/v1/accounts/verify_credentials", async ({ request, redirect }) => {
-	const auth = request.headers.get("Authorization")
+app.get("/api/v1/accounts/verify_credentials", async ({ request, redirect, headers }) => {
+	const { authorization } = headers
+
+	console.log(auth)
 
 	const req = await fetch(`https://${instance}/api/i`, {
 		method: "POST",
 		headers: {
-			"Authorization": auth!, //"Bearer " + process.env.DEV_BEARER!,
+			"Authorization": authorization, //"Bearer " + process.env.DEV_BEARER!,
 			"Content-Type": "application/json"
 		},
 		body: JSON.stringify({ doesnt: "matter" })
@@ -121,10 +129,15 @@ app.get("/api/v1/accounts/verify_credentials", async ({ request, redirect }) => 
 	const res = await req.json() as MKUserI
 
 	return MKUserToMasto(res, instance)
+}, {
+	headers: t.Object({
+		authorization: t.String()
+	})
 })
 
-app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params }) => {
+app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params, headers }) => {
 	const { limit, since_id, until_id, max_id } = query
+	const { authorization } = headers
 
 	let body: any = {
 		limit: parseInt(limit!) || 10
@@ -152,7 +165,7 @@ app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params }) =
 	const req = await fetch(`https://${instance}/api/notes/${mkTimeline}`, {
         method: "POST",
         headers: {
-            "Authorization": "Bearer " + process.env.DEV_BEARER,
+            "Authorization": authorization, // "Bearer " + process.env.DEV_BEARER,
             "Content-Type": "application/json"
         },
         body: JSON.stringify(body)
@@ -179,6 +192,10 @@ app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params }) =
 	set.headers["access-control-expose-headers"] += ", link"
 
 	return items
+}, {
+	headers: t.Object({
+		authorization: t.String()
+	})
 })
 
 let port = 3000
