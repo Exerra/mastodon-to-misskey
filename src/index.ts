@@ -53,7 +53,7 @@ app.all("*", async ({ request, body, set }) => {
 		init.headers["Authorization"] = "Bearer " + process.env.DEV_BEARER //request.headers.get("Authorization")!
 	}
 
-	console.log(url.toString())
+	console.log(url.toString(), "url to string")
 
 	// init.headers["x-forwarded-for"] = ""
 
@@ -128,9 +128,9 @@ app.get("/api/v1/accounts/verify_credentials", async ({ request, redirect }) => 
 	return MKUserToMasto(res, instance)
 })
 
-app.get("/api/v1/timelines/home", async ({ request, query }) => {
+app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params }) => {
 	console.log(query)
-	const { limit, since_id, until_id } = query
+	const { limit, since_id, until_id, max_id } = query
 
 	let body: any = {
 		limit: parseInt(limit!) || 10
@@ -138,9 +138,24 @@ app.get("/api/v1/timelines/home", async ({ request, query }) => {
 
 	if (since_id) body.sinceId = since_id
 	if (until_id) body.untilId = until_id
+	if (max_id) body.untilId = max_id
 
-	// ! Hybrid timeline for testing as it has more activity
-	const req = await fetch(`https://${instance}/api/notes/hybrid-timeline`, {
+	let mkTimeline: "" | "following" | "bubble-timeline" | "hybrid-timeline" | "global-timeline" | "local-timeline" = ""
+
+	switch (params.timeline) {
+		case "public":
+			if (query.local) mkTimeline = "local-timeline"
+			else mkTimeline = "global-timeline"
+			break;
+		case "home":
+			mkTimeline = "following"
+			break;
+		default:
+			mkTimeline = "hybrid-timeline"
+			break;
+	}
+
+	const req = await fetch(`https://${instance}/api/notes/${mkTimeline}`, {
         method: "POST",
         headers: {
             "Authorization": "Bearer " + process.env.DEV_BEARER,
@@ -156,6 +171,27 @@ app.get("/api/v1/timelines/home", async ({ request, query }) => {
 	for (let item of res) {
 		items.push(MKNoteToMasto(item, instance))
 	}
+
+	// console.log(items)
+
+	let tempQuery = query
+
+	delete tempQuery.max_id
+	delete tempQuery.min_id
+
+	let searchParams = new URLSearchParams(tempQuery as any)
+
+	// console.log(`https://${new URL(request.url).hostname}/api/v1/timelines/${params.timeline}?${searchParams}`)
+
+	let base = `https://${new URL(request.url).hostname}/api/v1/timelines/${params.timeline}?${searchParams}`
+
+	// <https://mastodon.social/api/v1/timelines/home?limit=20&max_id=113538707619723483>; rel="next", <https://mastodon.social/api/v1/timelines/home?limit=20&min_id=113559156237430301>; rel="prev"
+
+	set.headers.link = `<${base}&max_id=${items[items.length - 1].id}>; rel="next", <${base}&min_id=${items[0].id}>; rel="prev"`
+
+	console.log(`<${base}&max_id=${items[items.length - 1].id}>; rel="next", <${base}&min_id=${items[0].id}>; rel="prev"`)
+
+	set.headers["access-control-expose-headers"] += ", link"
 
 	return items
 })
@@ -491,7 +527,7 @@ app.get("/api/v2/instance", ({ request }) => {
 
 // ! -------------------------------------------------------------------------------
 
-let port = 5173
+let port = 3000
 
 const start = () => {
 	try {
