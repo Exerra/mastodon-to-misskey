@@ -189,7 +189,7 @@ app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params }) =
 
 	set.headers.link = `<${base}&max_id=${items[items.length - 1].id}>; rel="next", <${base}&min_id=${items[0].id}>; rel="prev"`
 
-	console.log(`<${base}&max_id=${items[items.length - 1].id}>; rel="next", <${base}&min_id=${items[0].id}>; rel="prev"`)
+	// console.log(`<${base}&max_id=${items[items.length - 1].id}>; rel="next", <${base}&min_id=${items[0].id}>; rel="prev"`)
 
 	set.headers["access-control-expose-headers"] += ", link"
 

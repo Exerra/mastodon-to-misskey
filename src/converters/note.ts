@@ -3,21 +3,27 @@ import { MKUserToMasto } from "./user";
 import { marked } from "marked";
 
 export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance: string) => {
-    console.log(note.uri)
-
     const renderer = new marked.Renderer()
 
     renderer.text = ({ text }) => {
         const tagRegex = /#(\w+)/g;
-    
-        // Replace #tag with a link
-        return text.replace(tagRegex, (match, tag) => {
+
+
+        let temp = text
+
+        temp = temp.replace(tagRegex, (match, tag) => {
             const url = `https://${instance}/tags/${tag}`;
             return `<a href="${url}" class="mention hashtag" target="_blank" rel="tag">#<span>${tag}</span></a>`;
         });
+        return temp
     }
 
     marked.setOptions({ renderer })
+
+    let text = note.text
+        ?.replaceAll(/@([a-zA-Z0-9._-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]+)/g, (match, username, domain) => {
+            return `<span class="h-card" translate="no"><a href="https://${domain}/@${username}" class="u-url mention">@<span>${username}</span></a></span>`
+        })
 
     let temp: any = {
         id: note.id,
@@ -28,7 +34,7 @@ export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance:
         in_reply_to_id: null,
         in_reply_to_account_id: null,
         reblog: note.renote == null ? null : MKNoteToMasto(note.renote, instance), // ! add
-        content: marked.parse(note.text || ""),
+        content: marked.parse(text || ""),
         content_type: "text/x.misskeymarkdown",
         text: note.text,
         created_at: note.createdAt,
@@ -57,9 +63,9 @@ export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance:
         edited_at: (note as MKTimelineItem).updatedAt || null
     }
 
-    if (note.user.username == "exerra") {
-        console.log(note)
-    }
+    // if (note.user.username == "exerra") {
+    //     console.log(note)
+    // }
 
     if (note.replyId != null) {
         temp.in_reply_to_id = note.replyId
