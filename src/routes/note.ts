@@ -30,6 +30,8 @@ notes.post("/api/v1/statuses/:id/:action", async ({ request, headers, params }) 
 
     let type: any = action
 
+    if (action == "favourite") type = "like"
+    // if (action == "unfavourite") type = ""
     if (action == "bookmark") type = "favorites/create"
     if (action == "unbookmark") type = "favorites/delete"
     // if (action == "reblog") type = ""
@@ -55,7 +57,7 @@ notes.post("/api/v1/statuses/:id/:action", async ({ request, headers, params }) 
     params: t.Object({
         id: t.String(),
         action: t.Union([
-            t.Literal("like"),
+            t.Literal("favourite"),
             // t.Literal("reblog"),
             t.Literal("bookmark"),
             t.Literal("unbookmark")

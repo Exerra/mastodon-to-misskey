@@ -148,8 +148,8 @@ app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params, hea
 
 	let body: any = {
 		limit: parseInt(limit!) || 10,
-		allowPartial: true,
-		withReplies: true,
+		// allowPartial: true,
+		// withReplies: true,
 		// withFiles: true
 	}
 
