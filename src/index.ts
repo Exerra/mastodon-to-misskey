@@ -55,6 +55,8 @@ app.all("*", async ({ request, body, set, headers }) => {
 		init.headers["Authorization"] =  headers.authorization //"Bearer " + request.headers.get("Authorization")!
 	}
 
+	// console.log(headers, init)
+
 	console.log(url.toString(), "url to string")
 
 	// init.headers["x-forwarded-for"] = ""
@@ -87,7 +89,59 @@ app.all("*", async ({ request, body, set, headers }) => {
 			break;
 	}
 
+	set.status = req.status
+
 	return bodya
+})
+
+app.get("/api/v1/accounts/:id/statuses", async ({ request, headers, params, query, set }) => {
+	const { limit, exclude_replies, since_id, until_id, max_id } = query
+	const { id } = params
+	const { authorization } = headers
+
+	let body: any = {
+		userId: id,
+		limit: parseInt(limit!) || 10,
+	}
+
+	if (since_id) body.sinceId = since_id
+	if (until_id) body.untilId = until_id
+	if (max_id) body.untilId = max_id
+
+	if (exclude_replies) body.withReplies = (exclude_replies == "true")
+
+	const req = await fetch(`https://${instance}/api/users/notes`, {
+		method: "POST",
+		headers: {
+            "Authorization": authorization!, // "Bearer " + process.env.DEV_BEARER,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+	})
+
+	const res = await req.json()
+
+	let items: any[] = []
+
+	console.log(params, query)
+
+	for (let item of res) {
+		items.push(MKNoteToMasto(item, instance))
+	}
+
+	let tempQuery = query
+
+	delete tempQuery.max_id
+	delete tempQuery.min_id
+
+	let searchParams = new URLSearchParams(tempQuery as any)
+
+	let base = `https://${new URL(request.url).hostname}/api/v1/accounts/${id}/statuses?${searchParams}`
+
+	if (items.length != 0) set.headers.link = `<${base}&max_id=${items[items.length - 1].id}>; rel="next", <${base}&min_id=${items[0].id}>; rel="prev"`
+	set.headers["access-control-expose-headers"] += ", link"
+
+	return items
 })
 
 app.get("/api/v1/preferences", async ({ request, redirect, headers }) => {
@@ -123,7 +177,7 @@ app.get("/api/v1/preferences", async ({ request, redirect, headers }) => {
 app.get("/api/v1/accounts/verify_credentials", async ({ request, redirect, headers }) => {
 	const { authorization } = headers
 
-	console.log(auth)
+	// console.log(auth)
 
 	const req = await fetch(`https://${instance}/api/i`, {
 		method: "POST",

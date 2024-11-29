@@ -46,3 +46,5 @@ package-lock.json
 # ! I am saving API responses to json files in the src dir for easier API response conversions.
 # TODO: figure out better idea
 src/*.json
+
+src/*.ignore.*
