@@ -1,10 +1,17 @@
 import { MKTimelineUser } from "../types/timeline";
 import { MKUserI } from "../types/useri";
 import { isURL } from "../util/isURL";
-import { MKEmojisToMasto } from "./emoji";
+import { MastoEmoji, MKEmojisToMasto } from "./emoji";
 
 export const MKUserToMasto = (user: MKUserI | MKTimelineUser, instance: string) => {
-    let emojis = MKEmojisToMasto(user.emojis)
+	let emojis: MastoEmoji[] = []
+    try {
+		if ("emojis" in user && Array.isArray(user.emojis)) emojis = MKEmojisToMasto(user.emojis)
+	} catch (e) {
+		// nothing
+	}
+
+	// let emojis = MKEmojisToMasto(user.emojis)
 	let fields = []
 
 	if ("fields" in user) {

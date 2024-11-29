@@ -16,20 +16,22 @@ import { MKNoteToMasto } from "./converters/note";
 import { wellKnown } from "./routes/well-known";
 import { auth } from "./routes/auth";
 import { notes } from "./routes/note";
+import { statuses } from "./routes/statuses";
 
 const instance = process.env.INSTANCE as string
 
 const app = new Elysia()
-	.onError(({ error, code }) => {
+	.onError(({ error, code, request }) => {
 		if (code === "NOT_FOUND") return
 
-		console.error(error)
+		console.error(error, request.url)
 	})
 
 app.use(cors())
 app.use(wellKnown)
 app.use(auth)
 app.use(notes)
+app.use(statuses)
 
 // app.get("/", () => "Hello Elysia")
 
@@ -46,6 +48,8 @@ app.all("*", async ({ request, body, set, headers }) => {
 			"Host": instance
 		}
 	}
+
+	// console.log(request)
 
 	if (body) init.body = request.body?.toString()
 
@@ -77,6 +81,8 @@ app.all("*", async ({ request, body, set, headers }) => {
 
 	let bodya: any = ""
 
+	// console.log(req.headers.get("Content-Type"))
+
 	switch (req.headers.get("Content-Type")) {
 		case "application/json":
 			bodya = await req.json()
@@ -89,9 +95,62 @@ app.all("*", async ({ request, body, set, headers }) => {
 			break;
 	}
 
-	set.status = req.status
+	// console.log(bodya)
 
 	return bodya
+})
+
+app.get("/api/v1/notifications", async ({ request, headers, params, query, set }) => {
+	// TODO: query filtering
+	// const { limit, exclude_replies, since_id, until_id, max_id } = query
+	// const { id } = params
+	const { authorization } = headers
+
+	const req = await fetch(`https://${instance}/api/i/notifications`, {
+		method: "POST",
+		headers: {
+            "Authorization": authorization!,
+            "Content-Type": "application/json"
+        },
+		body: JSON.stringify({
+			limit: 10,
+			markAsRead: false
+		})
+	})
+
+	const res = await req.json()
+
+	const items = []
+
+	for (let item of res) {
+		let allowTypes = ["mention", "reply"]
+		if (!allowTypes.includes(item.type)) continue
+
+		// console.log(item.user.name)
+
+		let type = item.type
+		let typer = item.type
+
+		if (item.type == "reply") await typer == "mention"
+
+		type = "mention"
+
+		let temp = {
+			// @ts-ignore
+			account: MKUserToMasto(item.user),
+			created_at: item.createdAt,
+			id: item.id,
+			type: type,
+			// @ts-ignore
+			status: MKNoteToMasto(item.note)
+		}
+
+		console.log(item.type, type, typer)
+
+		items.push(temp)
+	}
+
+	return items
 })
 
 app.get("/api/v1/accounts/:id/statuses", async ({ request, headers, params, query, set }) => {
@@ -260,6 +319,10 @@ app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params, hea
 	headers: t.Object({
 		authorization: t.String()
 	})
+})
+
+app.get("/api/:version/:lol", async () => {
+	return []
 })
 
 let port = 3000

@@ -1,5 +1,6 @@
 import { MKTimelineItem, MKTimelineRenote } from "../types/timeline";
 import { MKVisibility } from "../types/visibility";
+import { MKEmojisToMasto } from "./emoji";
 import { MKUserToMasto } from "./user";
 import { marked } from "marked";
 
@@ -39,7 +40,9 @@ export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance:
         content_type: "text/x.misskeymarkdown",
         text: note.text,
         created_at: note.createdAt,
-        emojis: [], // ! add
+        // TODO: fix types
+        // @ts-ignore
+        emojis: MKEmojisToMasto(note.emojis || {}),//[], // ! add
         replies_count: note.repliesCount,
         reblogs_count: note.renoteCount,
         favourites_count: note.reactionCount,

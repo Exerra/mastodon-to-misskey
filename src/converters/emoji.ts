@@ -1,6 +1,13 @@
 import { TentacledEmojis } from "../types/timeline"
 import { Emojis } from "../types/useri"
 
+export type MastoEmoji = {
+	shortcode: string,
+	static_url: string,
+	url: string,
+	visible_in_picker: boolean
+}
+
 export const MKEmojisToMasto = (emojis: Emojis | TentacledEmojis) => {
     let temp = []
 
