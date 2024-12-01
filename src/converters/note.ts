@@ -1,31 +1,32 @@
 import { MKTimelineItem, MKTimelineRenote } from "../types/timeline";
 import { MKVisibility } from "../types/visibility";
 import { MKEmojisToMasto } from "./emoji";
+import { parseMD } from "./markdown";
 import { MKUserToMasto } from "./user";
 import { marked } from "marked";
 
 export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance: string) => {
-    const renderer = new marked.Renderer()
+    // const renderer = new marked.Renderer()
 
-    renderer.text = ({ text }) => {
-        const tagRegex = /#(\w+)/g;
+    // renderer.text = ({ text }) => {
+    //     const tagRegex = /#(\w+)/g;
 
 
-        let temp = text
+    //     let temp = text
 
-        temp = temp.replace(tagRegex, (match, tag) => {
-            const url = `https://${instance}/tags/${tag}`;
-            return `<a href="${url}" class="mention hashtag" target="_blank" rel="tag">#<span>${tag}</span></a>`;
-        });
-        return temp
-    }
+    //     temp = temp.replace(tagRegex, (match, tag) => {
+    //         const url = `https://${instance}/tags/${tag}`;
+    //         return `<a href="${url}" class="mention hashtag" target="_blank" rel="tag">#<span>${tag}</span></a>`;
+    //     });
+    //     return temp
+    // }
 
-    marked.setOptions({ renderer })
+    // marked.setOptions({ renderer })
 
-    let text = note.text
-        ?.replaceAll(/@([a-zA-Z0-9._-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]+)/g, (match, username, domain) => {
-            return `<span class="h-card" translate="no"><a href="https://${domain}/@${username}" class="u-url mention">@<span>${username}</span></a></span>`
-        })
+    // let text = note.text
+    //     ?.replaceAll(/@([a-zA-Z0-9._-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]+)/g, (match, username, domain) => {
+    //         return `<span class="h-card" translate="no"><a href="https://${domain}/@${username}" class="u-url mention">@<span>${username}</span></a></span>`
+    //     })
 
     let temp: any = {
         id: note.id,
@@ -36,7 +37,7 @@ export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance:
         in_reply_to_id: null,
         in_reply_to_account_id: null,
         reblog: note.renote == null ? null : MKNoteToMasto(note.renote, instance), // ! add
-        content: marked.parse(text || ""),
+        content: parseMD(note.text || "", instance), //marked.parse(text || ""),
         content_type: "text/x.misskeymarkdown",
         text: note.text,
         created_at: note.createdAt,

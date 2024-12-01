@@ -26,7 +26,7 @@ notes.post("/api/v1/statuses/:id/:action", async ({ request, headers, params }) 
     const { authorization } = headers
     const { id, action } = params
 
-    console.log(params)
+    // console.log(params)
 
     let type: any = action
 

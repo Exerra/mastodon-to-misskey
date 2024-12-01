@@ -2,6 +2,7 @@ import { MKTimelineUser } from "../types/timeline";
 import { MKUserI } from "../types/useri";
 import { isURL } from "../util/isURL";
 import { MastoEmoji, MKEmojisToMasto } from "./emoji";
+import { parseMD } from "./markdown";
 
 export const MKUserToMasto = (user: MKUserI | MKTimelineUser, instance: string) => {
 	let emojis: MastoEmoji[] = []
@@ -43,7 +44,7 @@ export const MKUserToMasto = (user: MKUserI | MKTimelineUser, instance: string) 
 		followers_count: user.followersCount,
 		following_count: user.followingCount,
 		statuses_count: user.notesCount,
-		note: user.description || "",
+		note: parseMD(user.description || "", instance),
 		url: `https://${instance}/@${user.username}`,
 		uri: `https://${instance}/users/${user.id}`,
 		avatar: user.avatarUrl,

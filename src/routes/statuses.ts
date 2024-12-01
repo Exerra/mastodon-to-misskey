@@ -36,7 +36,7 @@ statuses.get("/api/v1/statuses/:id/context", async ({ request, headers, params, 
 		limit: parseInt(limit!) || 10,
 	}
 
-	console.log(headers, params, query, body)
+	// console.log(headers, params, query, body)
 
 	const ascendantReq = await fetch(`https://${instance}/api/notes/conversation`, {
 		method: "POST",
