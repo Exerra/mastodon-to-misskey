@@ -58,7 +58,7 @@ export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance:
         tags: [],
         card: null,
         poll: null,
-        application: null,
+        application: "Mastodon to Misskey bridge",
         language: null,
         pinned: false,
         reactions: [],

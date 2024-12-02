@@ -36,7 +36,7 @@ export const MKUserToMasto = (user: MKUserI | MKTimelineUser, instance: string) 
 		id: user.id,
 		username: user.username,
 		acct: user.username,
-		fqn: `${user.username}@${instance}`,
+		fqn: `${user.username}@${user.host || instance}`,
 		display_name: user.name || user.username,
 		displayName: user.name || user.username,
 		locked: 'isLocked' in user ? user.isLocked : false,

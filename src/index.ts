@@ -17,6 +17,7 @@ import { wellKnown } from "./routes/well-known";
 import { auth } from "./routes/auth";
 import { notes } from "./routes/note";
 import { statuses } from "./routes/statuses";
+import { accounts } from "./routes/accounts";
 
 const instance = process.env.INSTANCE as string
 
@@ -32,6 +33,8 @@ app.use(wellKnown)
 app.use(auth)
 app.use(notes)
 app.use(statuses)
+app.use(accounts)
+app.use(cors())
 
 // app.get("/", () => "Hello Elysia")
 
@@ -136,13 +139,11 @@ app.get("/api/v1/notifications", async ({ request, headers, params, query, set }
 		type = "mention"
 
 		let temp = {
-			// @ts-ignore
-			account: MKUserToMasto(item.user),
+			account: MKUserToMasto(item.user, instance),
 			created_at: item.createdAt,
 			id: item.id,
 			type: type,
-			// @ts-ignore
-			status: MKNoteToMasto(item.note)
+			status: MKNoteToMasto(item.note, instance)
 		}
 
 		// console.log(item.type, type, typer)
@@ -249,9 +250,9 @@ app.get("/api/v1/timelines/:timeline", async ({ request, query, set, params, hea
 	})
 })
 
-app.get("/api/:version/:lol", async () => {
-	return []
-})
+// app.get("/api/:version/:lol", async () => {
+// 	return []
+// })
 
 let port = 3000
 

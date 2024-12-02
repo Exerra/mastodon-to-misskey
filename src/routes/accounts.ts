@@ -2,10 +2,13 @@ import { Elysia, t } from "elysia"
 import { MKNoteToMasto } from "../converters/note"
 import { MKUserToMasto } from "../converters/user"
 import { MKUserI } from "../types/useri"
+import cors from "@elysiajs/cors"
 
 const instance = process.env.INSTANCE as string
 
 export const accounts = new Elysia()
+
+accounts.use(cors()) // fix?
 
 accounts.get("/api/v1/accounts/:id", async ({ request, headers, params, query, set }) => {
 	const { id } = params
@@ -25,8 +28,7 @@ accounts.get("/api/v1/accounts/:id", async ({ request, headers, params, query, s
 	const res = await req.json()
 
 
-    // @ts-ignore
-	return MKUserToMasto(res)
+	return MKUserToMasto(res, instance)
 })
 
 
@@ -80,7 +82,8 @@ accounts.get("/api/v1/accounts/:id/statuses", async ({ request, headers, params,
 	return items
 })
 
-accounts.get("/api/v1/accounts/verify_credentials", async ({ headers }) => {
+accounts.get("/api/v1/accounts/verify_credentials", async ({ headers, request }) => {
+	// console.log("VERIFY CREDS")
 	const { authorization } = headers
 
 	// console.log(auth)
@@ -93,7 +96,12 @@ accounts.get("/api/v1/accounts/verify_credentials", async ({ headers }) => {
 		},
 		body: JSON.stringify({ doesnt: "matter" })
 	})
+
+	// console.log(req)
+
 	const res = await req.json() as MKUserI
+
+	// console.log(res)
 
 	return MKUserToMasto(res, instance)
 }, {
