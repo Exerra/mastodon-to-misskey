@@ -7,9 +7,10 @@ import { parseMD } from "./markdown";
 export const MKUserToMasto = (user: MKUserI | MKTimelineUser, instance: string) => {
 	let emojis: MastoEmoji[] = []
     try {
-		if ("emojis" in user && Array.isArray(user.emojis)) emojis = MKEmojisToMasto(user.emojis)
+		if ("emojis" in user) emojis = MKEmojisToMasto(user.emojis)
 	} catch (e) {
 		// nothing
+		console.log(user)
 	}
 
 	// let emojis = MKEmojisToMasto(user.emojis)

@@ -82,6 +82,8 @@ export const MKNoteToMasto = (note: MKTimelineItem | MKTimelineRenote, instance:
 
         if (file.type.includes("image")) type = "image"
         else if (file.type.includes("video")) type = "video"
+        else if (file.type.includes("audio")) type = "audio"
+        else continue // better not to include than potentially mess up apps
 
         let tempFile = {
             id: file.id,
