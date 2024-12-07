@@ -22,6 +22,35 @@ const fetchNote = async (noteId: string, auth: string) => {
     return MKNoteToMasto(noteReq, instance)
 }
 
+notes.post("/api/v1/statuses/:id/reblog", async ({ request, headers, params, body }) => {
+    const { authorization } = headers
+    const { id } = params
+
+    const res = await fetch(`https://${instance}/api/notes/create`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": authorization
+        },
+        body: JSON.stringify({
+            renoteId: id
+        })
+    })
+
+    const req = await res.json()
+
+    const note = await MKNoteToMasto(req.createdNote as any, instance)
+
+    return note
+}, {
+    headers: t.Object({
+		authorization: t.String()
+	}),
+    params: t.Object({
+        id: t.String(),
+    })
+})
+
 notes.post("/api/v1/statuses/:id/:action", async ({ request, headers, params }) => {
     const { authorization } = headers
     const { id, action } = params

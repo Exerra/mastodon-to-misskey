@@ -60,6 +60,38 @@ statuses.get("/api/v1/statuses/:id/context", async ({ request, headers, params, 
 
 	const descendantRes = await descendantReq.json()
 
+	let temp = descendantRes
+
+	const iterate = async (array: any[], i = 0) => {
+		let newArr = []
+
+		for (let item of array) {
+			console.log(item.id)
+	
+			let body: any = {
+				noteId: item.id,
+				limit: parseInt(limit!) || 10,
+			}
+	
+			const descendantReq = await fetch(`https://${instance}/api/notes/children`, {
+				method: "POST",
+				headers: {
+					"Authorization": authorization!,
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(body)
+			})
+		
+			const descendantRes = await descendantReq.json()
+	
+			newArr = descendantRes
+		}
+
+		temp = temp.concat(newArr)
+
+		return iterate(newArr, ++i)
+	}
+
 	// console.
 
 	let ascend: any[] = []
@@ -70,7 +102,7 @@ statuses.get("/api/v1/statuses/:id/context", async ({ request, headers, params, 
 	for (let item of ascendantRes) {
 		ascend.push(MKNoteToMasto(item, instance))
 	}
-	for (let item of descendantRes) {
+	for (let item of temp) {
 		descend.push(MKNoteToMasto(item, instance))
 	}
 
