@@ -31,6 +31,36 @@ accounts.get("/api/v1/accounts/:id", async ({ request, headers, params, query, s
 	return MKUserToMasto(res, instance)
 })
 
+// ! Tested only against a handful of accounts for now
+// TODO: test against more accts
+accounts.get("/api/v1/accounts/lookup", async ({ request, headers, params, query, set }) => {
+	const { acct } = query
+	const { authorization } = headers
+
+	const url = new URL(acct as string)
+	const domain = url.host
+	const username = url.pathname.replace("/", "").replace("@", "")
+
+	console.log(domain, username)
+
+	const req = await fetch(`https://${instance}/api/users/show`, {
+		method: "POST",
+		headers: {
+            "Authorization": authorization!, // "Bearer " + process.env.DEV_BEARER,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+			host: domain,
+			username: username
+		})
+	})
+
+	const res = await req.json()
+
+
+	return MKUserToMasto(res, instance)
+})
+
 
 accounts.get("/api/v1/accounts/:id/statuses", async ({ request, headers, params, query, set }) => {
 	const { limit, exclude_replies, since_id, until_id, max_id } = query
