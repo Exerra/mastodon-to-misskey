@@ -103,6 +103,39 @@ app.all("*", async ({ request, body, set, headers }) => {
 	return bodya
 })
 
+app.get("/api/v1/bookmarks", async ({ headers, query }) => {
+	const { authorization } = headers
+	const { limit } = query
+
+	let body: any = {
+		limit: parseInt(limit!) || 10
+	}
+
+	const req = await fetch(`https://${instance}/api/i/favorites`, {
+		method: "POST",
+		headers: {
+            "Authorization": authorization!,
+            "Content-Type": "application/json"
+        },
+		body: JSON.stringify(body)
+	})
+
+	const res = await req.json()
+
+	console.log(res)
+
+	let items = []
+
+	for (let note of res) {
+		// console.log(note)
+		if (!note) continue
+
+		items.push(MKNoteToMasto(note.note as any, instance))
+	}
+
+	return items
+})
+
 app.get("/api/v1/notifications", async ({ request, headers, params, query, set }) => {
 	// TODO: query filtering
 	// const { limit, exclude_replies, since_id, until_id, max_id } = query
@@ -159,21 +192,34 @@ app.get("/api/v1/preferences", async ({ request, redirect, headers }) => {
 
 	let id = "dcxF5rDO9R5dfxpd" // TODO: dynamically get the logged in users ID with the /api/i endpoint
 
-	const req = await fetch(`https://${instance}/api/v1/preferences`, {
+	console.log(instance)
+
+	const acctReq = await fetch(`https://${instance}/api/i`, {
+		method: "POST",
+		headers: {
+			"Authorization": authorization, //"Bearer " + process.env.DEV_BEARER,
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify({})
+	})
+
+	const acctRes = await acctReq.json() as MKUser
+
+	const req = await fetch(`https://${instance}/api/preferences`, {
 		method: "POST",
 		headers: {
 			"Authorization": authorization, //"Bearer " + process.env.DEV_BEARER,
 			"Content-Type": "application/json"
 		},
 		body: JSON.stringify({
-			i: id
+			i: acctRes.id
 		})
 	})
 	const res = await req.json() as MKUser
 
 	return {
 		"posting:default:language": "english", 	// TODO: res.lang (lv-LV) -> posting:default:language (latvian)
-		"posting:default:sensitive": res.autoSensitive,
+		"posting:default:sensitive": acctRes.defaultSensitive,
 		"posting:default:visibility": "public", 	// ? is there even something like this in Misskey
 		"reading:expand:media": "default", 			// ? ^^^^
 		"reading:expand:spoilers": false 			// ? ^^^^
