@@ -33,6 +33,9 @@ export const MKUserToMasto = (user: MKUserI | MKTimelineUser, instance: string) 
         }
     }
 
+	let avatarProxyURL = new URL(user.avatarUrl)
+	let avatarURL = avatarProxyURL.searchParams.get("url")
+
 	return {
 		id: user.id,
 		username: user.username,
@@ -48,8 +51,8 @@ export const MKUserToMasto = (user: MKUserI | MKTimelineUser, instance: string) 
 		note: parseMD(user.description || "", instance),
 		url: `https://${instance}/@${user.username}`,
 		uri: `https://${instance}/users/${user.id}`,
-		avatar: user.avatarUrl,
-		avatar_static: user.avatarUrl,
+		avatar: avatarURL, //user.avatarUrl,
+		avatar_static: avatarURL, //user.avatarUrl,
 		header: 'bannerUrl' in user ? user.bannerUrl : '',
 		header_static: 'bannerUrl' in user ? user.bannerUrl : '',
 		emojis: emojis,
