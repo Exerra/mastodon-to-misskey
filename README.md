@@ -16,7 +16,7 @@ This project aims to bridge the gap by translating Mastodon API calls to Misskey
 
 ## Tested apps
 - [Phanpy](https://phanpy.social)
-- Mastodon for iOS
+<!-- - Mastodon for iOS -->
 
 ## Known missing features
 
