@@ -18,6 +18,7 @@ import { auth } from "./routes/auth";
 import { notes } from "./routes/note";
 import { statuses } from "./routes/statuses";
 import { accounts } from "./routes/accounts";
+import { index } from "./routes/index";
 
 const instance = process.env.INSTANCE as string
 
@@ -28,12 +29,12 @@ const app = new Elysia()
 		console.error(error, request.url)
 	})
 
-app.use(cors())
 app.use(wellKnown)
 app.use(auth)
 app.use(notes)
 app.use(statuses)
 app.use(accounts)
+app.use(index)
 app.use(cors())
 
 // app.get("/", () => "Hello Elysia")
