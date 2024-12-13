@@ -308,7 +308,8 @@ const start = () => {
 		app.listen(port);
 
 		console.log(
-			`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+			`Mastodon to Misskey bridge is running at ${app.server?.hostname}:${app.server?.port}`,
+			`\nInstance - ${instance}`
 		);
 	} catch (e) {
 		port++
